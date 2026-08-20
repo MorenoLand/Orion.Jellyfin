@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Name=Jellyfin
+Comment=Jellyfin Desktop Client
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/jellyfin %u
+Terminal=false
+Type=Application
+Icon=jellyfin
+Categories=Utility;
+StartupWMClass=jellyfin
