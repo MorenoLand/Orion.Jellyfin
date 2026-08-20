@@ -1,0 +1,10 @@
+uBlock is embedded in the exe (~3.7MB zip). On first run it extracts to your app data folder and loads via --load-extension flag.
+
+If ads still show, it could be:
+1. WebView2 extension loading might need more flags
+2. uBlock might need its settings initialized first
+3. The extension might be loading but not injecting on external URLs
+
+Check if the extension extracted: look in %APPDATA%/land.moreno.jellyfin/ublock/
+
+Want me to investigate further?

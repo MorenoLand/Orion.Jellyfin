@@ -1,0 +1,6 @@
+Press T to toggle theater mode (currently broken).
+Press X for immersive mode.
+Double-click header OR videoOsdPage to maximize (respects taskbar).
+Tray icon toggles show/hide, right-click for menu.
+
+FIXED: Double-click on videoOsdPage now also triggers maximize.

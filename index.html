@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jellyfin</title>
+  <link rel="stylesheet" href="/src/styles.css" />
+  <script type="module" src="/src/main.ts" defer></script>
+</head>
+<body>
+<script>if('__TAURI_INTERNALS__' in window||'__TAURI__' in window)document.body.classList.add('tauri')</script>
+
+<div id="titlebar" data-tauri-drag-region>
+  <div id="titlebar-title" data-tauri-drag-region>Jellyfin</div>
+</div>
+
+<div id="loading"><div class="spinner"></div><span>Connecting to booty.moreno.land...</span></div>
+
+<iframe id="jellyfin" src="https://booty.moreno.land" allowfullscreen allow="autoplay; fullscreen; encrypted-media; media-source; picture-in-picture"></iframe>
+
+<button id="win-max" title="Maximize">□</button>
+<button id="win-close" title="Close">✕</button>
+
+</body>
+</html>
