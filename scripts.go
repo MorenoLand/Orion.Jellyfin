@@ -26,9 +26,17 @@ func injectHost(action string, fields map[string]string) string {
 }
 
 const genericInjection = `(function(){
-  if(window.__morenoJellyfinInjection)return;
-  window.__morenoJellyfinInjection=true;
-  const host=(action,data={})=>{
+  if(window.__morenoJellyfinInjection||window.__morenoJellyfinInjectionPending)return;
+  window.__morenoJellyfinInjectionPending=true;
+  const install=()=>{
+    if(!window._wails||typeof window._wails.invoke!=='function'){
+      setTimeout(install,50);
+      return
+    }
+    if(window.__morenoJellyfinInjection)return;
+    window.__morenoJellyfinInjection=true;
+    if(typeof window._wails.setResizable==='function')window._wails.setResizable(true);
+    const host=(action,data={})=>{
     try{
       if(!window._wails||typeof window._wails.invoke!=='function')return;
       if(action==='drag_window'){window._wails.invoke('wails:drag');return}
@@ -58,6 +66,7 @@ const genericInjection = `(function(){
     const move=moveEvent=>{
       if(moved||Math.hypot(moveEvent.clientX-startX,moveEvent.clientY-startY)<=3)return;
       moved=true;
+      event.preventDefault();
       host('drag_window');
       cleanup()
     };
@@ -83,12 +92,22 @@ const genericInjection = `(function(){
     return false
   },true);
   host('page_load',{url:location.href,title:document.title})
+  };
+  install()
 })()`
 
 const jellyfinInjection = `(function(){
-  if(window.__morenoJellyfinInjection)return;
-  window.__morenoJellyfinInjection=true;
-  const host=(action,data={})=>{
+  if(window.__morenoJellyfinInjection||window.__morenoJellyfinInjectionPending)return;
+  window.__morenoJellyfinInjectionPending=true;
+  const install=()=>{
+    if(!window._wails||typeof window._wails.invoke!=='function'){
+      setTimeout(install,50);
+      return
+    }
+    if(window.__morenoJellyfinInjection)return;
+    window.__morenoJellyfinInjection=true;
+    if(typeof window._wails.setResizable==='function')window._wails.setResizable(true);
+    const host=(action,data={})=>{
     try{
       if(!window._wails||typeof window._wails.invoke!=='function')return;
       if(action==='drag_window'){window._wails.invoke('wails:drag');return}
@@ -186,4 +205,6 @@ const jellyfinInjection = `(function(){
     document.addEventListener('mouseup',cleanup,true)
   },true);
   host('page_load',{url:location.href,title:document.title})
+  };
+  install()
 })()`
