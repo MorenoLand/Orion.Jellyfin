@@ -224,14 +224,6 @@ const genericInjection = `(function(){
   document.addEventListener('keydown',event=>{
     if(event.target&&event.target.closest('input,textarea,[contenteditable],select'))return;
     if(event.defaultPrevented||event.ctrlKey||event.altKey||event.metaKey||event.shiftKey)return;
-    if(event.key.toLowerCase()!=='x')return;
-    immersive=!window.__morenoImmersiveMode;
-    window.__morenoImmersiveMode=immersive;
-    if(window.__morenoResizeLayer)window.__morenoResizeLayer.style.display=immersive?'none':'';
-    showToast(immersive?'Immersive mode on':'Immersive mode off');
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    return false
   },true);
   host('page_load',{url:location.href,title:document.title})
   };
@@ -375,32 +367,6 @@ const jellyfinInjection = `(function(){
       event.stopImmediatePropagation();
       return false
     }
-    if(key!=='x')return;
-    immersive=!window.__morenoImmersiveMode;
-    window.__morenoImmersiveMode=immersive;
-    document.documentElement.classList.toggle('moreno-immersive',immersive);
-    if(window.__morenoResizeLayer)window.__morenoResizeLayer.style.display=immersive?'none':'';
-    if(immersive){
-      overlay=document.createElement('div');
-      overlay.id='jf-immersive-overlay';
-      overlay.style.cssText='position:fixed;inset:0;z-index:2147483646;background:transparent;pointer-events:auto';
-      document.body.appendChild(overlay);
-      const video=document.querySelector('div#videoOsdPage');
-      if(video)video.style.display='none';
-      blockTypes.forEach(type=>document.addEventListener(type,blockAll,true));
-      showToast('Immersive mode on')
-    }else{
-      overlay=overlay||document.getElementById('jf-immersive-overlay');
-      if(overlay)overlay.remove();
-      overlay=null;
-      const video=document.querySelector('div#videoOsdPage');
-      if(video)video.style.display='';
-      blockTypes.forEach(type=>document.removeEventListener(type,blockAll,true));
-      showToast('Immersive mode off')
-    }
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    return false
   },true);
   document.addEventListener('dblclick',event=>{
     if(excluded(event.target))return;
