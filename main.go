@@ -50,7 +50,8 @@ func main() {
 		Assets:      application.AssetOptions{Handler: application.AssetFileServerFS(assets)},
 		Windows:     application.WindowsOptions{AdditionalBrowserArgs: []string{"--ignore-certificate-errors"}},
 		KeyBindings: map[string]func(window application.Window){
-			"x": func(window application.Window) { window.ExecJS(immersiveToggleScript) },
+			"x":   func(window application.Window) { window.ExecJS(immersiveToggleScript) },
+			"f12": func(window application.Window) { window.OpenDevTools() },
 		},
 		RawMessageHandler: state.handleMessage,
 	})
@@ -68,6 +69,7 @@ func main() {
 		InitialPosition: application.WindowCentered,
 		Frameless:       true,
 		DisableResize:   false,
+		DevToolsEnabled: true,
 		Windows:         application.WindowsWindow{NonClientRegionSupport: true},
 	})
 	state.main = mainWindow

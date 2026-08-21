@@ -31,6 +31,7 @@ const immersiveToggleScript = `(function(){
   const video=document.querySelector('div#videoOsdPage');
   const immersive=!window.__morenoImmersiveMode;
   window.__morenoImmersiveMode=immersive;
+  if(window.__morenoResizeLayer)window.__morenoResizeLayer.style.display=immersive?'none':'';
   if(video){
     const blockTypes=['mousemove','mouseover','mouseenter','mousedown','mouseup','click','dblclick','contextmenu','pointerdown','pointerup','pointermove','pointerover','pointerenter'];
     const block=window.__morenoImmersiveBlock||(window.__morenoImmersiveBlock=event=>{event.stopImmediatePropagation();event.preventDefault()});
@@ -83,26 +84,61 @@ const genericInjection = `(function(){
       window._wails.invoke(JSON.stringify(Object.assign({action},data)))
     }catch(_e){}
   };
-  let resizeEdge='',resizeReady=false,resizeActive=false,defaultCursor='auto';
+  const resizeSystem=window._wails&&window._wails.flags&&window._wails.flags.system||{};
+  const resizeHandleWidth=Math.max(10,Number(resizeSystem.resizeHandleWidth)||5);
+  const resizeHandleHeight=Math.max(10,Number(resizeSystem.resizeHandleHeight)||5);
+  const resizeCornerExtra=Math.max(10,Number(window._wails&&window._wails.flags&&window._wails.flags.resizeCornerExtra)||10);
+  let resizeEdge='',resizeReady=false,resizeActive=false,resizeCursorStyle;
+  const resizeCursor=edge=>edge==='se-resize'||edge==='nw-resize'?'nwse-resize':edge==='sw-resize'||edge==='ne-resize'?'nesw-resize':edge==='w-resize'||edge==='e-resize'?'ew-resize':'ns-resize';
   const setResize=edge=>{
     if(edge){
-      if(!resizeEdge)defaultCursor=document.body.style.cursor;
-      document.body.style.cursor=edge==='se-resize'||edge==='nw-resize'?'nwse-resize':edge==='sw-resize'||edge==='ne-resize'?'nesw-resize':edge==='w-resize'||edge==='e-resize'?'ew-resize':'ns-resize'
-    }else if(resizeEdge)document.body.style.cursor=defaultCursor;
+      if(!resizeCursorStyle){
+        resizeCursorStyle=document.createElement('style');
+        resizeCursorStyle.id='moreno-resize-cursor';
+        (document.head||document.documentElement).appendChild(resizeCursorStyle)
+      }
+      resizeCursorStyle.textContent='html,body,body *{cursor:'+resizeCursor(edge)+'!important}'
+    }else if(resizeCursorStyle)resizeCursorStyle.textContent='';
     resizeEdge=edge||''
   };
+  const resizeLayer=document.createElement('div');
+  resizeLayer.id='moreno-resize-layer';
+  resizeLayer.style.cssText='position:fixed;inset:0;z-index:2147483645;pointer-events:none';
+  const resizeZone=(edge,position)=>{
+    const zone=document.createElement('div');
+    zone.style.cssText='position:fixed;'+position+';z-index:2147483646;pointer-events:auto;cursor:'+resizeCursor(edge);
+    zone.addEventListener('mousedown',event=>{
+      if(event.button!==0||window.__morenoImmersiveMode)return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      setResize(edge);
+      host('resize_window',{edge})
+    },true);
+    resizeLayer.appendChild(zone)
+  };
+  const cornerWidth=resizeHandleWidth+resizeCornerExtra,cornerHeight=resizeHandleHeight+resizeCornerExtra;
+  resizeZone('n-resize','top:0;left:0;right:0;height:'+resizeHandleHeight+'px');
+  resizeZone('s-resize','left:0;right:0;bottom:0;height:'+resizeHandleHeight+'px');
+  resizeZone('w-resize','top:'+resizeHandleHeight+'px;left:0;bottom:'+resizeHandleHeight+'px;width:'+resizeHandleWidth+'px');
+  resizeZone('e-resize','top:'+resizeHandleHeight+'px;right:0;bottom:'+resizeHandleHeight+'px;width:'+resizeHandleWidth+'px');
+  resizeZone('nw-resize','top:0;left:0;width:'+cornerWidth+'px;height:'+cornerHeight+'px');
+  resizeZone('ne-resize','top:0;right:0;width:'+cornerWidth+'px;height:'+cornerHeight+'px');
+  resizeZone('sw-resize','bottom:0;left:0;width:'+cornerWidth+'px;height:'+cornerHeight+'px');
+  resizeZone('se-resize','bottom:0;right:0;width:'+cornerWidth+'px;height:'+cornerHeight+'px');
+  (document.body||document.documentElement).appendChild(resizeLayer);
+  window.__morenoResizeLayer=resizeLayer;
   const updateResize=event=>{
     if(window.__morenoImmersiveMode){setResize();return}
     const rightContentEdge=window.innerWidth-Math.max(0,window.innerWidth-document.documentElement.clientWidth);
     const bottomContentEdge=window.innerHeight-Math.max(0,window.innerHeight-document.documentElement.clientHeight);
-    const rightBorder=event.clientX<rightContentEdge&&rightContentEdge-event.clientX<5;
-    const leftBorder=event.clientX<5;
-    const topBorder=event.clientY<5;
-    const bottomBorder=event.clientY<bottomContentEdge&&bottomContentEdge-event.clientY<5;
-    const rightCorner=event.clientX<rightContentEdge&&rightContentEdge-event.clientX<15;
-    const leftCorner=event.clientX<15;
-    const topCorner=event.clientY<15;
-    const bottomCorner=event.clientY<bottomContentEdge&&bottomContentEdge-event.clientY<15;
+    const rightBorder=event.clientX<rightContentEdge&&rightContentEdge-event.clientX<resizeHandleWidth;
+    const leftBorder=event.clientX<resizeHandleWidth;
+    const topBorder=event.clientY<resizeHandleHeight;
+    const bottomBorder=event.clientY<bottomContentEdge&&bottomContentEdge-event.clientY<resizeHandleHeight;
+    const rightCorner=event.clientX<rightContentEdge&&rightContentEdge-event.clientX<resizeHandleWidth+resizeCornerExtra;
+    const leftCorner=event.clientX<resizeHandleWidth+resizeCornerExtra;
+    const topCorner=event.clientY<resizeHandleHeight+resizeCornerExtra;
+    const bottomCorner=event.clientY<bottomContentEdge&&bottomContentEdge-event.clientY<resizeHandleHeight+resizeCornerExtra;
     if(!leftCorner&&!topCorner&&!bottomCorner&&!rightCorner){setResize();return}
     if(rightCorner&&bottomCorner)setResize('se-resize');
     else if(leftCorner&&bottomCorner)setResize('sw-resize');
@@ -181,6 +217,7 @@ const genericInjection = `(function(){
     if(event.key.toLowerCase()!=='x')return;
     immersive=!window.__morenoImmersiveMode;
     window.__morenoImmersiveMode=immersive;
+    if(window.__morenoResizeLayer)window.__morenoResizeLayer.style.display=immersive?'none':'';
     showToast(immersive?'Immersive mode on':'Immersive mode off');
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -210,26 +247,61 @@ const jellyfinInjection = `(function(){
       window._wails.invoke(JSON.stringify(Object.assign({action},data)))
     }catch(_e){}
   };
-  let resizeEdge='',resizeReady=false,resizeActive=false,defaultCursor='auto';
+  const resizeSystem=window._wails&&window._wails.flags&&window._wails.flags.system||{};
+  const resizeHandleWidth=Math.max(10,Number(resizeSystem.resizeHandleWidth)||5);
+  const resizeHandleHeight=Math.max(10,Number(resizeSystem.resizeHandleHeight)||5);
+  const resizeCornerExtra=Math.max(10,Number(window._wails&&window._wails.flags&&window._wails.flags.resizeCornerExtra)||10);
+  let resizeEdge='',resizeReady=false,resizeActive=false,resizeCursorStyle;
+  const resizeCursor=edge=>edge==='se-resize'||edge==='nw-resize'?'nwse-resize':edge==='sw-resize'||edge==='ne-resize'?'nesw-resize':edge==='w-resize'||edge==='e-resize'?'ew-resize':'ns-resize';
   const setResize=edge=>{
     if(edge){
-      if(!resizeEdge)defaultCursor=document.body.style.cursor;
-      document.body.style.cursor=edge==='se-resize'||edge==='nw-resize'?'nwse-resize':edge==='sw-resize'||edge==='ne-resize'?'nesw-resize':edge==='w-resize'||edge==='e-resize'?'ew-resize':'ns-resize'
-    }else if(resizeEdge)document.body.style.cursor=defaultCursor;
+      if(!resizeCursorStyle){
+        resizeCursorStyle=document.createElement('style');
+        resizeCursorStyle.id='moreno-resize-cursor';
+        (document.head||document.documentElement).appendChild(resizeCursorStyle)
+      }
+      resizeCursorStyle.textContent='html,body,body *{cursor:'+resizeCursor(edge)+'!important}'
+    }else if(resizeCursorStyle)resizeCursorStyle.textContent='';
     resizeEdge=edge||''
   };
+  const resizeLayer=document.createElement('div');
+  resizeLayer.id='moreno-resize-layer';
+  resizeLayer.style.cssText='position:fixed;inset:0;z-index:2147483645;pointer-events:none';
+  const resizeZone=(edge,position)=>{
+    const zone=document.createElement('div');
+    zone.style.cssText='position:fixed;'+position+';z-index:2147483646;pointer-events:auto;cursor:'+resizeCursor(edge);
+    zone.addEventListener('mousedown',event=>{
+      if(event.button!==0||window.__morenoImmersiveMode)return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      setResize(edge);
+      host('resize_window',{edge})
+    },true);
+    resizeLayer.appendChild(zone)
+  };
+  const cornerWidth=resizeHandleWidth+resizeCornerExtra,cornerHeight=resizeHandleHeight+resizeCornerExtra;
+  resizeZone('n-resize','top:0;left:0;right:0;height:'+resizeHandleHeight+'px');
+  resizeZone('s-resize','left:0;right:0;bottom:0;height:'+resizeHandleHeight+'px');
+  resizeZone('w-resize','top:'+resizeHandleHeight+'px;left:0;bottom:'+resizeHandleHeight+'px;width:'+resizeHandleWidth+'px');
+  resizeZone('e-resize','top:'+resizeHandleHeight+'px;right:0;bottom:'+resizeHandleHeight+'px;width:'+resizeHandleWidth+'px');
+  resizeZone('nw-resize','top:0;left:0;width:'+cornerWidth+'px;height:'+cornerHeight+'px');
+  resizeZone('ne-resize','top:0;right:0;width:'+cornerWidth+'px;height:'+cornerHeight+'px');
+  resizeZone('sw-resize','bottom:0;left:0;width:'+cornerWidth+'px;height:'+cornerHeight+'px');
+  resizeZone('se-resize','bottom:0;right:0;width:'+cornerWidth+'px;height:'+cornerHeight+'px');
+  (document.body||document.documentElement).appendChild(resizeLayer);
+  window.__morenoResizeLayer=resizeLayer;
   const updateResize=event=>{
     if(window.__morenoImmersiveMode){setResize();return}
     const rightContentEdge=window.innerWidth-Math.max(0,window.innerWidth-document.documentElement.clientWidth);
     const bottomContentEdge=window.innerHeight-Math.max(0,window.innerHeight-document.documentElement.clientHeight);
-    const rightBorder=event.clientX<rightContentEdge&&rightContentEdge-event.clientX<5;
-    const leftBorder=event.clientX<5;
-    const topBorder=event.clientY<5;
-    const bottomBorder=event.clientY<bottomContentEdge&&bottomContentEdge-event.clientY<5;
-    const rightCorner=event.clientX<rightContentEdge&&rightContentEdge-event.clientX<15;
-    const leftCorner=event.clientX<15;
-    const topCorner=event.clientY<15;
-    const bottomCorner=event.clientY<bottomContentEdge&&bottomContentEdge-event.clientY<15;
+    const rightBorder=event.clientX<rightContentEdge&&rightContentEdge-event.clientX<resizeHandleWidth;
+    const leftBorder=event.clientX<resizeHandleWidth;
+    const topBorder=event.clientY<resizeHandleHeight;
+    const bottomBorder=event.clientY<bottomContentEdge&&bottomContentEdge-event.clientY<resizeHandleHeight;
+    const rightCorner=event.clientX<rightContentEdge&&rightContentEdge-event.clientX<resizeHandleWidth+resizeCornerExtra;
+    const leftCorner=event.clientX<resizeHandleWidth+resizeCornerExtra;
+    const topCorner=event.clientY<resizeHandleHeight+resizeCornerExtra;
+    const bottomCorner=event.clientY<bottomContentEdge&&bottomContentEdge-event.clientY<resizeHandleHeight+resizeCornerExtra;
     if(!leftCorner&&!topCorner&&!bottomCorner&&!rightCorner){setResize();return}
     if(rightCorner&&bottomCorner)setResize('se-resize');
     else if(leftCorner&&bottomCorner)setResize('sw-resize');
@@ -295,6 +367,7 @@ const jellyfinInjection = `(function(){
     if(key!=='x')return;
     immersive=!window.__morenoImmersiveMode;
     window.__morenoImmersiveMode=immersive;
+    if(window.__morenoResizeLayer)window.__morenoResizeLayer.style.display=immersive?'none':'';
     if(immersive){
       overlay=document.createElement('div');
       overlay.id='jf-immersive-overlay';
