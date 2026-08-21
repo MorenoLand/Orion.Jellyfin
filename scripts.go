@@ -37,7 +37,7 @@ const genericInjection = `(function(){
   };
   const style=document.createElement('style');
   style.id='gf-style';
-  style.textContent='html,body{width:100%!important;height:100%!important;overflow:hidden!important;background:#000!important}body>*{max-width:none!important}.gf-toast{position:fixed;left:50%;bottom:8%;z-index:2147483647;transform:translateX(-50%);padding:8px 14px;border-radius:4px;background:rgba(0,0,0,.78);color:#fff;font:13px "Segoe UI",sans-serif;pointer-events:none;opacity:0;transition:opacity .15s}.gf-toast.gf-show{opacity:1}';
+  style.textContent='html,body{width:100%!important;height:100%!important;overflow:hidden!important;background:#000!important}body{--wails-resize:all}body>*{max-width:none!important}.gf-toast{position:fixed;left:50%;bottom:8%;z-index:2147483647;transform:translateX(-50%);padding:8px 14px;border-radius:4px;background:rgba(0,0,0,.78);color:#fff;font:13px "Segoe UI",sans-serif;pointer-events:none;opacity:0;transition:opacity .15s}.gf-toast.gf-show{opacity:1}';
   (document.head||document.documentElement).appendChild(style);
   const toast=document.createElement('div');
   toast.className='gf-toast';
@@ -97,7 +97,7 @@ const jellyfinInjection = `(function(){
   };
   const style=document.createElement('style');
   style.id='jf-style';
-  style.textContent='.skinHeader,.headerTop,.headerLeft,.headerRight,.MuiToolbar-root{--wails-draggable:drag;-webkit-app-region:drag;app-region:drag}.skinHeader button,.skinHeader a,.skinHeader input,.skinHeader select,.skinHeader textarea,.headerTop button,.headerTop a,.headerLeft button,.headerLeft a,.headerRight button,.headerRight a,.MuiToolbar-root button,.MuiToolbar-root a,.MuiToolbar-root input,.MuiToolbar-root select{--wails-draggable:no-drag;-webkit-app-region:no-drag;app-region:no-drag}body{user-select:none!important;-webkit-user-select:none!important}input,select,textarea,[contenteditable="true"]{user-select:text!important;-webkit-user-select:text!important}.jf-toast{position:fixed;left:50%;bottom:8%;z-index:2147483647;transform:translateX(-50%);padding:8px 14px;border-radius:4px;background:rgba(0,0,0,.78);color:#fff;font:13px "Segoe UI",sans-serif;pointer-events:none;opacity:0;transition:opacity .15s}.jf-toast.jf-show{opacity:1}';
+  style.textContent='.skinHeader,.headerTop,.headerLeft,.headerRight,.MuiToolbar-root{--wails-draggable:drag;-webkit-app-region:drag;app-region:drag}.skinHeader button,.skinHeader a,.skinHeader input,.skinHeader select,.skinHeader textarea,.headerTop button,.headerTop a,.headerLeft button,.headerLeft a,.headerRight button,.headerRight a,.MuiToolbar-root button,.MuiToolbar-root a,.MuiToolbar-root input,.MuiToolbar-root select{--wails-draggable:no-drag;-webkit-app-region:no-drag;app-region:no-drag}body{--wails-resize:all;user-select:none!important;-webkit-user-select:none!important}input,select,textarea,[contenteditable="true"]{user-select:text!important;-webkit-user-select:text!important}.jf-toast{position:fixed;left:50%;bottom:8%;z-index:2147483647;transform:translateX(-50%);padding:8px 14px;border-radius:4px;background:rgba(0,0,0,.78);color:#fff;font:13px "Segoe UI",sans-serif;pointer-events:none;opacity:0;transition:opacity .15s}.jf-toast.jf-show{opacity:1}';
   (document.head||document.documentElement).appendChild(style);
   const toast=document.createElement('div');
   toast.className='jf-toast';

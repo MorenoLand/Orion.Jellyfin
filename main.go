@@ -24,17 +24,19 @@ type hostMessage struct {
 }
 
 type appState struct {
-	app         *application.App
-	main        *application.WebviewWindow
-	theater     *application.WebviewWindow
-	customURL   bool
-	customTitle bool
-	quitting    atomic.Bool
-	maxMu       sync.Mutex
-	maximized   bool
-	restored    application.Rect
-	theaterMu   sync.Mutex
-	theaterOpen bool
+	app               *application.App
+	main              *application.WebviewWindow
+	theater           *application.WebviewWindow
+	customURL         bool
+	customTitle       bool
+	quitting          atomic.Bool
+	maxMu             sync.Mutex
+	maximized         bool
+	restored          application.Rect
+	theaterMu         sync.Mutex
+	theaterOpen       bool
+	theaterMainBounds application.Rect
+	theaterMainSaved  bool
 }
 
 func main() {
@@ -215,8 +217,14 @@ func (s *appState) toggleTheater() {
 	s.theaterMu.Lock()
 	if s.theaterOpen {
 		s.theaterOpen = false
+		restore := s.theaterMainBounds
+		restoreMain := s.theaterMainSaved
+		s.theaterMainSaved = false
 		s.theaterMu.Unlock()
 		s.theater.Hide()
+		if restoreMain {
+			s.main.SetPhysicalBounds(restore)
+		}
 		return
 	}
 	screen, err := s.main.GetScreen()
@@ -224,6 +232,8 @@ func (s *appState) toggleTheater() {
 		s.theaterMu.Unlock()
 		return
 	}
+	s.theaterMainBounds = s.main.PhysicalBounds()
+	s.theaterMainSaved = true
 	s.theaterOpen = true
 	s.theaterMu.Unlock()
 	s.theater.SetPhysicalBounds(screen.PhysicalBounds)

@@ -4,3 +4,4 @@ frontend/dist/
 frontend/bindings/
 dist/
 bin/
+.task/

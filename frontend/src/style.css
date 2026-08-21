@@ -8,7 +8,7 @@
   --warn: #e04060;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; width: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 "Segoe UI", system-ui, sans-serif; overflow: hidden; }
+html, body { --wails-resize: all; height: 100%; width: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 "Segoe UI", system-ui, sans-serif; overflow: hidden; }
 #titlebar {
   height: 30px; display: flex; align-items: center; justify-content: center;
   background: var(--titlebar); border-bottom: 1px solid var(--border);
