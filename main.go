@@ -71,12 +71,12 @@ func main() {
 		Windows:         application.WindowsWindow{NonClientRegionSupport: true},
 	})
 	state.main = mainWindow
+	mainWindow.HandleMessage("wails:runtime:ready")
 	mainWindow.SetResizable(true)
 	injectPage := func(_ *application.WindowEvent) {
 		mainWindow.SetResizable(true)
 		mainWindow.ExecJS(injectionScript(customURL))
 	}
-	mainWindow.RegisterHook(events.Common.WindowRuntimeReady, injectPage)
 	mainWindow.RegisterHook(events.Windows.WebViewNavigationCompleted, injectPage)
 	mainWindow.RegisterHook(events.Mac.WebViewDidFinishNavigation, injectPage)
 	mainWindow.RegisterHook(events.Linux.WindowLoadFinished, injectPage)
