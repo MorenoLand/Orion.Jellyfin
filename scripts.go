@@ -31,6 +31,11 @@ const immersiveToggleScript = `(function(){
   const video=document.querySelector('div#videoOsdPage');
   const immersive=!window.__morenoImmersiveMode;
   window.__morenoImmersiveMode=immersive;
+  const immersiveHeaderStyle=document.getElementById('moreno-immersive-header-style')||document.createElement('style');
+  immersiveHeaderStyle.id='moreno-immersive-header-style';
+  immersiveHeaderStyle.textContent='html.moreno-immersive .skinHeader,html.moreno-immersive .headerTop{display:none!important}';
+  (document.head||document.documentElement).appendChild(immersiveHeaderStyle);
+  document.documentElement.classList.toggle('moreno-immersive',immersive);
   if(window.__morenoResizeLayer)window.__morenoResizeLayer.style.display=immersive?'none':'';
   if(video){
     const blockTypes=['mousemove','mouseover','mouseenter','mousedown','mouseup','click','dblclick','contextmenu','pointerdown','pointerup','pointermove','pointerover','pointerenter'];
@@ -338,7 +343,7 @@ const jellyfinInjection = `(function(){
   window.addEventListener('resize',()=>{resizeReady=false;resizeActive=false;setResize()});
   const style=document.createElement('style');
   style.id='jf-style';
-  style.textContent='.skinHeader,.headerTop,.headerLeft,.headerRight,.MuiToolbar-root{--wails-draggable:drag;-webkit-app-region:drag;app-region:drag}.skinHeader button,.skinHeader a,.skinHeader input,.skinHeader select,.skinHeader textarea,.headerTop button,.headerTop a,.headerLeft button,.headerLeft a,.headerRight button,.headerRight a,.MuiToolbar-root button,.MuiToolbar-root a,.MuiToolbar-root input,.MuiToolbar-root select{--wails-draggable:no-drag;-webkit-app-region:no-drag;app-region:no-drag}body{--wails-resize:all;user-select:none!important;-webkit-user-select:none!important}input,select,textarea,[contenteditable="true"]{user-select:text!important;-webkit-user-select:text!important}.jf-toast{position:fixed;left:50%;bottom:8%;z-index:2147483647;transform:translateX(-50%);padding:8px 14px;border-radius:4px;background:rgba(0,0,0,.78);color:#fff;font:13px "Segoe UI",sans-serif;pointer-events:none;opacity:0;transition:opacity .15s}.jf-toast.jf-show{opacity:1}';
+  style.textContent='.skinHeader,.headerTop,.headerLeft,.headerRight,.MuiToolbar-root{--wails-draggable:drag;-webkit-app-region:drag;app-region:drag}.skinHeader button,.skinHeader a,.skinHeader input,.skinHeader select,.skinHeader textarea,.headerTop button,.headerTop a,.headerLeft button,.headerLeft a,.headerRight button,.headerRight a,.MuiToolbar-root button,.MuiToolbar-root a,.MuiToolbar-root input,.MuiToolbar-root select{--wails-draggable:no-drag;-webkit-app-region:no-drag;app-region:no-drag}html.moreno-immersive .skinHeader,html.moreno-immersive .headerTop{display:none!important}body{--wails-resize:all;user-select:none!important;-webkit-user-select:none!important}input,select,textarea,[contenteditable="true"]{user-select:text!important;-webkit-user-select:text!important}.jf-toast{position:fixed;left:50%;bottom:8%;z-index:2147483647;transform:translateX(-50%);padding:8px 14px;border-radius:4px;background:rgba(0,0,0,.78);color:#fff;font:13px "Segoe UI",sans-serif;pointer-events:none;opacity:0;transition:opacity .15s}.jf-toast.jf-show{opacity:1}';
   (document.head||document.documentElement).appendChild(style);
   const toast=document.createElement('div');
   toast.className='jf-toast';
@@ -351,6 +356,7 @@ const jellyfinInjection = `(function(){
     toastTimer=setTimeout(()=>toast.classList.remove('jf-show'),1200)
   };
   let immersive=!!window.__morenoImmersiveMode,overlay=document.getElementById('jf-immersive-overlay');
+  document.documentElement.classList.toggle('moreno-immersive',immersive);
   const blockAll=event=>{event.stopImmediatePropagation();event.preventDefault()};
   const blockTypes=['mousemove','mouseover','mouseenter','mousedown','mouseup','click','dblclick','contextmenu','pointerdown','pointerup','pointermove','pointerover','pointerenter'];
   const excluded=target=>target&&target.closest('button,a,input,select,textarea,[contenteditable="true"]');
@@ -367,6 +373,7 @@ const jellyfinInjection = `(function(){
     if(key!=='x')return;
     immersive=!window.__morenoImmersiveMode;
     window.__morenoImmersiveMode=immersive;
+    document.documentElement.classList.toggle('moreno-immersive',immersive);
     if(window.__morenoResizeLayer)window.__morenoResizeLayer.style.display=immersive?'none':'';
     if(immersive){
       overlay=document.createElement('div');
