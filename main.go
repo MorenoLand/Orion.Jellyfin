@@ -52,7 +52,6 @@ func main() {
 		Assets:      application.AssetOptions{Handler: application.AssetFileServerFS(assets)},
 		Windows:     application.WindowsOptions{AdditionalBrowserArgs: []string{"--ignore-certificate-errors"}},
 		KeyBindings: map[string]func(window application.Window){
-			"x":   func(window application.Window) { window.ExecJS(immersiveToggleScript) },
 			"f12": func(window application.Window) {
 				if !state.immersive.Load() {
 					window.OpenDevTools()

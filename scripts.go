@@ -197,7 +197,27 @@ const genericInjection = `(function(){
     clearTimeout(toastTimer);
     toastTimer=setTimeout(()=>toast.classList.remove('gf-show'),1200)
   };
-  let immersive=!!window.__morenoImmersiveMode;
+  let immersive=!!window.__morenoImmersiveMode,overlay=document.getElementById('jf-immersive-overlay');
+  const immersiveKeyTypes=['keydown','keypress','keyup'];
+  const immersivePointerTypes=['mousemove','mouseover','mouseenter','mouseleave','mousedown','mouseup','click','dblclick','contextmenu','auxclick','wheel','dragstart','drag','dragend','drop','pointerdown','pointerup','pointermove','pointerover','pointerenter','pointerleave','pointercancel','touchstart','touchmove','touchend','touchcancel'];
+  const immersiveKeyBlock=window.__morenoImmersiveKeyBlock||(window.__morenoImmersiveKeyBlock=event=>{
+    if(String(event.key||'').toLowerCase()==='x'&&!event.ctrlKey&&!event.altKey&&!event.metaKey&&!event.shiftKey)return;
+    event.preventDefault();
+    event.stopImmediatePropagation()
+  });
+  const immersivePointerBlock=window.__morenoImmersivePointerBlock||(window.__morenoImmersivePointerBlock=event=>{event.preventDefault();event.stopImmediatePropagation()});
+  const setImmersiveInputBlock=active=>{
+    immersiveKeyTypes.forEach(type=>[window,document].forEach(target=>active?target.addEventListener(type,immersiveKeyBlock,true):target.removeEventListener(type,immersiveKeyBlock,true)));
+    immersivePointerTypes.forEach(type=>active?window.addEventListener(type,immersivePointerBlock,true):window.removeEventListener(type,immersivePointerBlock,true))
+  };
+  const setImmersiveCursor=active=>{
+    const style=document.getElementById('moreno-immersive-style')||document.createElement('style');
+    style.id='moreno-immersive-style';
+    style.textContent=active?'html.moreno-immersive,html.moreno-immersive *{cursor:none!important}':'';
+    (document.head||document.documentElement).appendChild(style);
+    const resizeCursorStyle=document.getElementById('moreno-resize-cursor');
+    if(resizeCursorStyle)resizeCursorStyle.textContent=active?'':''
+  };
   const excluded=target=>target&&target.closest('button,a,input,select,textarea,[contenteditable="true"],iframe,video,audio,canvas');
   document.addEventListener('mousedown',event=>{
     if(event.button!==0||window.__morenoImmersiveMode||excluded(event.target))return;
@@ -222,8 +242,28 @@ const genericInjection = `(function(){
     host('toggle_maximize')
   },true);
   document.addEventListener('keydown',event=>{
-    if(event.target&&event.target.closest('input,textarea,[contenteditable],select'))return;
-    if(event.defaultPrevented||event.ctrlKey||event.altKey||event.metaKey||event.shiftKey)return;
+    const key=String(event.key||'').toLowerCase();
+    if(key!=='x'||event.ctrlKey||event.altKey||event.metaKey||event.shiftKey)return;
+    immersive=!window.__morenoImmersiveMode;
+    window.__morenoImmersiveMode=immersive;
+    document.documentElement.classList.toggle('moreno-immersive',immersive);
+    setImmersiveCursor(immersive);
+    setImmersiveInputBlock(immersive);
+    if(window.__morenoResizeLayer)window.__morenoResizeLayer.style.display=immersive?'none':'';
+    try{host('set_immersive',{immersive})}catch(_e){}
+    if(immersive){
+      overlay=overlay||document.createElement('div');
+      overlay.id='jf-immersive-overlay';
+      overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;background:transparent;pointer-events:auto;cursor:none!important;touch-action:none;user-select:none';
+      document.documentElement.appendChild(overlay)
+    }else if(overlay){
+      overlay.remove();
+      overlay=null
+    }
+    showToast(immersive?'Immersive mode on':'Immersive mode off');
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    return false
   },true);
   host('page_load',{url:location.href,title:document.title})
   };
@@ -354,8 +394,28 @@ const jellyfinInjection = `(function(){
   };
   let immersive=!!window.__morenoImmersiveMode,overlay=document.getElementById('jf-immersive-overlay');
   document.documentElement.classList.toggle('moreno-immersive',immersive);
-  const blockAll=event=>{event.stopImmediatePropagation();event.preventDefault()};
-  const blockTypes=['mousemove','mouseover','mouseenter','mousedown','mouseup','click','dblclick','contextmenu','pointerdown','pointerup','pointermove','pointerover','pointerenter'];
+  const immersiveKeyTypes=['keydown','keypress','keyup'];
+  const immersivePointerTypes=['mousemove','mouseover','mouseenter','mouseleave','mousedown','mouseup','click','dblclick','contextmenu','auxclick','wheel','dragstart','drag','dragend','drop','pointerdown','pointerup','pointermove','pointerover','pointerenter','pointerleave','pointercancel','touchstart','touchmove','touchend','touchcancel'];
+  const immersiveKeyBlock=window.__morenoImmersiveKeyBlock||(window.__morenoImmersiveKeyBlock=event=>{
+    if(String(event.key||'').toLowerCase()==='x'&&!event.ctrlKey&&!event.altKey&&!event.metaKey&&!event.shiftKey)return;
+    event.preventDefault();
+    event.stopImmediatePropagation()
+  });
+  const immersivePointerBlock=window.__morenoImmersivePointerBlock||(window.__morenoImmersivePointerBlock=event=>{event.preventDefault();event.stopImmediatePropagation()});
+  const setImmersiveInputBlock=active=>{
+    immersiveKeyTypes.forEach(type=>[window,document].forEach(target=>active?target.addEventListener(type,immersiveKeyBlock,true):target.removeEventListener(type,immersiveKeyBlock,true)));
+    immersivePointerTypes.forEach(type=>active?window.addEventListener(type,immersivePointerBlock,true):window.removeEventListener(type,immersivePointerBlock,true))
+  };
+  const setImmersiveCursor=active=>{
+    const style=document.getElementById('moreno-immersive-style')||document.createElement('style');
+    style.id='moreno-immersive-style';
+    style.textContent=active?'html.moreno-immersive,html.moreno-immersive *{cursor:none!important}':'';
+    (document.head||document.documentElement).appendChild(style);
+    const resizeCursorStyle=document.getElementById('moreno-resize-cursor');
+    if(resizeCursorStyle)resizeCursorStyle.textContent=active?'':''
+  };
+  setImmersiveCursor(immersive);
+  setImmersiveInputBlock(immersive);
   const excluded=target=>target&&target.closest('button,a,input,select,textarea,[contenteditable="true"]');
   document.addEventListener('keydown',event=>{
     if(event.target&&event.target.closest('input,textarea,[contenteditable],select'))return;
@@ -367,6 +427,32 @@ const jellyfinInjection = `(function(){
       event.stopImmediatePropagation();
       return false
     }
+    if(key!=='x')return;
+    immersive=!window.__morenoImmersiveMode;
+    window.__morenoImmersiveMode=immersive;
+    document.documentElement.classList.toggle('moreno-immersive',immersive);
+    setImmersiveCursor(immersive);
+    setImmersiveInputBlock(immersive);
+    if(window.__morenoResizeLayer)window.__morenoResizeLayer.style.display=immersive?'none':'';
+    try{host('set_immersive',{immersive})}catch(_e){}
+    if(immersive){
+      overlay=overlay||document.createElement('div');
+      overlay.id='jf-immersive-overlay';
+      overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;background:transparent;pointer-events:auto;cursor:none!important;touch-action:none;user-select:none';
+      document.documentElement.appendChild(overlay);
+      const video=document.querySelector('div#videoOsdPage');
+      if(video)video.style.display='none';
+      showToast('Immersive mode on')
+    }else{
+      if(overlay)overlay.remove();
+      overlay=null;
+      const video=document.querySelector('div#videoOsdPage');
+      if(video)video.style.display='';
+      showToast('Immersive mode off')
+    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    return false
   },true);
   document.addEventListener('dblclick',event=>{
     if(excluded(event.target))return;
