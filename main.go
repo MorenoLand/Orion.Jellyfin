@@ -61,9 +61,11 @@ func main() {
 		MinHeight:       400,
 		InitialPosition: application.WindowCentered,
 		Frameless:       true,
+		Windows:         application.WindowsWindow{NonClientRegionSupport: true},
 	})
 	state.main = mainWindow
 	injectPage := func(_ *application.WindowEvent) { mainWindow.ExecJS(injectionScript(customURL)) }
+	mainWindow.RegisterHook(events.Common.WindowRuntimeReady, injectPage)
 	mainWindow.RegisterHook(events.Windows.WebViewNavigationCompleted, injectPage)
 	mainWindow.RegisterHook(events.Mac.WebViewDidFinishNavigation, injectPage)
 	mainWindow.RegisterHook(events.Linux.WindowLoadFinished, injectPage)

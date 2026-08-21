@@ -26,6 +26,8 @@ func injectHost(action string, fields map[string]string) string {
 }
 
 const genericInjection = `(function(){
+  if(window.__morenoJellyfinInjection)return;
+  window.__morenoJellyfinInjection=true;
   const host=(action,data={})=>{
     try{
       if(!window._wails||typeof window._wails.invoke!=='function')return;
@@ -84,6 +86,8 @@ const genericInjection = `(function(){
 })()`
 
 const jellyfinInjection = `(function(){
+  if(window.__morenoJellyfinInjection)return;
+  window.__morenoJellyfinInjection=true;
   const host=(action,data={})=>{
     try{
       if(!window._wails||typeof window._wails.invoke!=='function')return;
@@ -148,6 +152,21 @@ const jellyfinInjection = `(function(){
     host('toggle_maximize');
     event.preventDefault();
     event.stopImmediatePropagation()
+  },true);
+  document.addEventListener('mousedown',event=>{
+    if(event.button!==0||immersive||excluded(event.target)||!event.target.closest('.skinHeader,.headerTop,.headerLeft,.headerRight,.MuiToolbar-root'))return;
+    const startX=event.clientX,startY=event.clientY;
+    const move=moveEvent=>{
+      if(Math.hypot(moveEvent.clientX-startX,moveEvent.clientY-startY)<=3)return;
+      host('drag_window');
+      cleanup()
+    };
+    const cleanup=()=>{
+      document.removeEventListener('mousemove',move,true);
+      document.removeEventListener('mouseup',cleanup,true)
+    };
+    document.addEventListener('mousemove',move,true);
+    document.addEventListener('mouseup',cleanup,true)
   },true);
   document.addEventListener('mousedown',event=>{
     if(event.button!==0||immersive||excluded(event.target)||event.target.closest('.sliderContainer,.volumeSlider,.osdVolumeSlider')||!event.target.closest('div#videoOsdPage'))return;
