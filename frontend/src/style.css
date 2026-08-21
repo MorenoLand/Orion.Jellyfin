@@ -12,7 +12,7 @@ html, body { height: 100%; width: 100%; background: var(--bg); color: var(--text
 #titlebar {
   height: 30px; display: flex; align-items: center; justify-content: center;
   background: var(--titlebar); border-bottom: 1px solid var(--border);
-  -webkit-app-region: drag; app-region: drag; position: relative; z-index: 10;
+  --wails-draggable: drag; -webkit-app-region: drag; app-region: drag; position: relative; z-index: 10;
 }
 #titlebar-title {
   font-size: 12px; font-weight: 700; color: var(--muted);
@@ -41,7 +41,7 @@ html.wails #titlebar { border-top: 2px solid var(--accent); }
   color: var(--muted); cursor: pointer; font-size: 13px;
   display: flex; align-items: center; justify-content: center;
   opacity: 0; transition: opacity .12s, background .1s, color .1s;
-  -webkit-app-region: no-drag; app-region: no-drag;
+  --wails-draggable: no-drag; -webkit-app-region: no-drag; app-region: no-drag;
 }
 #win-max { right: 38px; }
 body:hover #win-close, body:hover #win-max { opacity: 0.3; }
