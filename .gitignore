@@ -5,3 +5,4 @@ frontend/bindings/
 dist/
 bin/
 .task/
+jellyfin.exe

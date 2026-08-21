@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
@@ -44,10 +45,13 @@ func main() {
 	state := &appState{customURL: customURL, customTitle: title != ""}
 	icon := loadIcon(targetURL)
 	app := application.New(application.Options{
-		Name:              "Jellyfin",
-		Description:       "Jellyfin Desktop Client",
-		Assets:            application.AssetOptions{Handler: application.AssetFileServerFS(assets)},
-		Windows:           application.WindowsOptions{AdditionalBrowserArgs: []string{"--ignore-certificate-errors"}},
+		Name:        "Jellyfin",
+		Description: "Jellyfin Desktop Client",
+		Assets:      application.AssetOptions{Handler: application.AssetFileServerFS(assets)},
+		Windows:     application.WindowsOptions{AdditionalBrowserArgs: []string{"--ignore-certificate-errors"}},
+		KeyBindings: map[string]func(window application.Window){
+			"x": func(window application.Window) { window.ExecJS(immersiveToggleScript) },
+		},
 		RawMessageHandler: state.handleMessage,
 	})
 	state.app = app
@@ -63,14 +67,22 @@ func main() {
 		MinHeight:       400,
 		InitialPosition: application.WindowCentered,
 		Frameless:       true,
+		DisableResize:   false,
 		Windows:         application.WindowsWindow{NonClientRegionSupport: true},
 	})
 	state.main = mainWindow
-	injectPage := func(_ *application.WindowEvent) { mainWindow.ExecJS(injectionScript(customURL)) }
+	mainWindow.SetResizable(true)
+	injectPage := func(_ *application.WindowEvent) {
+		mainWindow.SetResizable(true)
+		mainWindow.ExecJS(injectionScript(customURL))
+	}
 	mainWindow.RegisterHook(events.Common.WindowRuntimeReady, injectPage)
 	mainWindow.RegisterHook(events.Windows.WebViewNavigationCompleted, injectPage)
 	mainWindow.RegisterHook(events.Mac.WebViewDidFinishNavigation, injectPage)
 	mainWindow.RegisterHook(events.Linux.WindowLoadFinished, injectPage)
+	for _, delay := range []time.Duration{250 * time.Millisecond, 750 * time.Millisecond, 1500 * time.Millisecond, 3 * time.Second, 5 * time.Second} {
+		time.AfterFunc(delay, func() { injectPage(nil) })
+	}
 
 	theater := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:          "theater",
