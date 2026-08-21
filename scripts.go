@@ -26,16 +26,23 @@ func injectHost(action string, fields map[string]string) string {
 }
 
 const immersiveToggleScript = `(function(){
-  const active=document.activeElement;
-  if(active&&active.closest&&active.closest('input,textarea,select,[contenteditable="true"]'))return;
   const video=document.querySelector('div#videoOsdPage');
   const immersive=!window.__morenoImmersiveMode;
   window.__morenoImmersiveMode=immersive;
   const immersiveHeaderStyle=document.getElementById('moreno-immersive-header-style')||document.createElement('style');
   immersiveHeaderStyle.id='moreno-immersive-header-style';
-  immersiveHeaderStyle.textContent='html.moreno-immersive .skinHeader,html.moreno-immersive .headerTop{display:none!important}';
+  immersiveHeaderStyle.textContent='html.moreno-immersive .skinHeader,html.moreno-immersive .headerTop{display:none!important}html.moreno-immersive,html.moreno-immersive *{cursor:none!important}';
   (document.head||document.documentElement).appendChild(immersiveHeaderStyle);
   document.documentElement.classList.toggle('moreno-immersive',immersive);
+  const keyboardTypes=['keydown','keypress','keyup'];
+  const keyboardBlock=window.__morenoImmersiveKeyBlock||(window.__morenoImmersiveKeyBlock=event=>{
+    if(String(event.key||'').toLowerCase()==='x'&&!event.ctrlKey&&!event.altKey&&!event.metaKey&&!event.shiftKey)return;
+    event.preventDefault();
+    event.stopImmediatePropagation()
+  });
+  const setKeyboardBlock=active=>keyboardTypes.forEach(type=>active?document.addEventListener(type,keyboardBlock,true):document.removeEventListener(type,keyboardBlock,true));
+  setKeyboardBlock(immersive);
+  try{window._wails&&window._wails.invoke&&window._wails.invoke(JSON.stringify({action:'set_immersive',immersive}))}catch(_e){}
   if(window.__morenoResizeLayer)window.__morenoResizeLayer.style.display=immersive?'none':'';
   if(video){
     const blockTypes=['mousemove','mouseover','mouseenter','mousedown','mouseup','click','dblclick','contextmenu','pointerdown','pointerup','pointermove','pointerover','pointerenter'];

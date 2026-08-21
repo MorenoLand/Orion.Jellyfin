@@ -19,9 +19,10 @@ import (
 var assets embed.FS
 
 type hostMessage struct {
-	Action string
-	URL    string
-	Title  string
+	Action    string
+	URL       string
+	Title     string
+	Immersive bool
 }
 
 type appState struct {
@@ -31,6 +32,7 @@ type appState struct {
 	customURL         bool
 	customTitle       bool
 	quitting          atomic.Bool
+	immersive         atomic.Bool
 	maxMu             sync.Mutex
 	maximized         bool
 	restored          application.Rect
@@ -51,7 +53,11 @@ func main() {
 		Windows:     application.WindowsOptions{AdditionalBrowserArgs: []string{"--ignore-certificate-errors"}},
 		KeyBindings: map[string]func(window application.Window){
 			"x":   func(window application.Window) { window.ExecJS(immersiveToggleScript) },
-			"f12": func(window application.Window) { window.OpenDevTools() },
+			"f12": func(window application.Window) {
+				if !state.immersive.Load() {
+					window.OpenDevTools()
+				}
+			},
 		},
 		RawMessageHandler: state.handleMessage,
 	})
@@ -164,6 +170,8 @@ func (s *appState) handleMessage(window application.Window, message string, _ *a
 	switch request.Action {
 	case "hide":
 		window.Hide()
+	case "set_immersive":
+		s.immersive.Store(request.Immersive)
 	case "toggle_maximize":
 		s.toggleMaximize(window)
 	case "toggle_theater":
@@ -173,6 +181,7 @@ func (s *appState) handleMessage(window application.Window, message string, _ *a
 			window.SetTitle(request.Title)
 		}
 	case "page_load":
+		s.immersive.Store(false)
 		if request.URL == "" {
 			return
 		}
